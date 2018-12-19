@@ -82,13 +82,14 @@ def get_features(img, dictionary):
     return sparse
 
 
-data = pd.read_csv("/Users/levimcclenny/Desktop/Materials Informatics//classifiers/DictLearn/micrograph.csv")
+data = pd.read_csv("micrograph.csv")
 
 
 
 imgs = []
 paths = []
 img_name = []
+img_new_name = []
 dir = os.path.dirname(os.path.realpath('__file__'))
 path = os.path.join(dir, 'micrographs/')
 #path = "../micrographs/micrograph"
@@ -97,7 +98,8 @@ valid_images = [".tif",".png"]
 for f in os.listdir(path):
     img_name.append(f)
 
-img_name.sort()    
+img_name.sort()
+
 for f in img_name:
     ext = os.path.splitext(f)[1]
     if ext.lower() not in valid_images:
@@ -106,7 +108,7 @@ for f in img_name:
     # since apparently matpltlib doesnt care about float32 vs uint8 
     img = np.asarray(Image.open(os.path.join(path,f)))
     paths.append(os.path.join(path,f))
-    #img_name.append(f)
+    img_new_name.append(f)
     imgs.append(img[0:484, :]/255)
 
 l_idx = np.searchsorted(img_name, data['path'])

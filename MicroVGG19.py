@@ -100,11 +100,14 @@ MaxPooling2D(pool_size=(2, 2), strides=(2, 2)),
 Conv2D(256, (3, 3), activation='relu', padding='same',),
 Conv2D(256, (3, 3), activation='relu', padding='same',),
 Conv2D(256, (3, 3), activation='relu', padding='same',),
+Conv2D(256, (3, 3), activation='relu', padding='same',),
 MaxPooling2D(pool_size=(2, 2), strides=(2, 2)),
 Conv2D(512, (3, 3), activation='relu', padding='same',),
 Conv2D(512, (3, 3), activation='relu', padding='same',),
 Conv2D(512, (3, 3), activation='relu', padding='same',),
+Conv2D(512, (3, 3), activation='relu', padding='same',),
 MaxPooling2D(pool_size=(2, 2), strides=(2, 2)),
+Conv2D(512, (3, 3), activation='relu', padding='same',),
 Conv2D(512, (3, 3), activation='relu', padding='same',),
 Conv2D(512, (3, 3), activation='relu', padding='same',),
 Conv2D(512, (3, 3), activation='relu', padding='same',),
@@ -119,13 +122,13 @@ model.summary()
 model.compile(loss = 'categorical_crossentropy', optimizer = 'sgd', metrics = ['accuracy'])
 
 model.fit(X_train, y_train, epochs = 5, batch_size = 32, validation_data=(X_test, y_test))
-name = 'results/UHCS_VGG16_Weights'
+name = 'results/UHCS_VGG19_Weights'
 score = model.evaluate(X_test, y_test)
-print('Test score:'+ score[0])
-print('Test accuracy:'+ score[1])
+print('Test score:', score[0])
+print('Test accuracy:', score[1])
 model.save_weights(name+'.h5')
 
-file = open('VGG16.txt', 'w')
+file = open('VGG19.txt', 'w')
 file.write('Test score:', score[0])
 file.write('Test accuracy:', score[1])
 file.close()

@@ -10,14 +10,26 @@ from sklearn.preprocessing import LabelBinarizer
 from PIL import Image
 #from keras.applications.vgg16 import VGG16
 #from keras.preprocessing import image
-from keras.applications.vgg16 import preprocess_input
+from keras.applications.xception import preprocess_input
 import keras
 from keras.models import Sequential
 from keras.layers import Dense, Activation, Dropout, Flatten
 from keras.layers import Conv2D
 from keras.layers import MaxPooling2D
+from keras.applications.densenet import DenseNet121
 import tensorflow as tf
 #from progress.bar import Bar
+import time
+
+class TimeHistory(keras.callbacks.Callback):
+    def on_train_begin(self, logs={}):
+        self.times = []
+
+    def on_epoch_begin(self, batch, logs={}):
+        self.epoch_time_start = time.time()
+
+    def on_epoch_end(self, batch, logs={}):
+        self.times.append(time.time() - self.epoch_time_start)
 
 def progbar(curr, total, full_progbar):
     frac = curr/total
@@ -67,10 +79,12 @@ print('Generating Images\n')
 for i in range(len(imgs_ordered)):
     patches = image.extract_patches_2d(imgs_ordered[i], (224,224), max_patches = 100)
     label = data['primary_microconstituent'][i]
-   
     for patch in patches:
-        x = np.expand_dims(patch, axis = 2)
-        processed_imgs.append(np.float32(x-np.mean(x)))
+        x = Image.fromarray(patch).convert('RGB')
+        x = np.asarray(x)
+        #x = np.expand_dims(patch, axis = 2)
+        x = preprocess_input(x)
+        processed_imgs.append(x)
         labels.append(label)
     progbar(i, (len(imgs_ordered)-1), 20)
 
@@ -86,46 +100,23 @@ input = np.asarray(processed_imgs)
 
 X_train, X_test, y_train, y_test = train_test_split(
     input, y, test_size=0.1, random_state=42)
- 
-input_shape = (224, 224, 1)
 
-model = Sequential([
-Conv2D(64, (3, 3), input_shape=input_shape, padding='same',
-activation='relu'),
-Conv2D(64, (3, 3), activation='relu', padding='same'),
-MaxPooling2D(pool_size=(2, 2), strides=(2, 2)),
-Conv2D(128, (3, 3), activation='relu', padding='same'),
-Conv2D(128, (3, 3), activation='relu', padding='same',),
-MaxPooling2D(pool_size=(2, 2), strides=(2, 2)),
-Conv2D(256, (3, 3), activation='relu', padding='same',),
-Conv2D(256, (3, 3), activation='relu', padding='same',),
-Conv2D(256, (3, 3), activation='relu', padding='same',),
-MaxPooling2D(pool_size=(2, 2), strides=(2, 2)),
-Conv2D(512, (3, 3), activation='relu', padding='same',),
-Conv2D(512, (3, 3), activation='relu', padding='same',),
-Conv2D(512, (3, 3), activation='relu', padding='same',),
-MaxPooling2D(pool_size=(2, 2), strides=(2, 2)),
-Conv2D(512, (3, 3), activation='relu', padding='same',),
-Conv2D(512, (3, 3), activation='relu', padding='same',),
-Conv2D(512, (3, 3), activation='relu', padding='same',),
-MaxPooling2D(pool_size=(2, 2), strides=(2, 2)),
-Flatten(),
-Dense(4096, activation='relu'),
-Dense(4096, activation='relu'),
-Dense(7, activation='softmax')
-])
+
+model = DenseNet121(weights=None, classes = 7)
 
 model.summary()
 model.compile(loss = 'categorical_crossentropy', optimizer = 'sgd', metrics = ['accuracy'])
-
-model.fit(X_train, y_train, epochs = 5, batch_size = 32, validation_data=(X_test, y_test))
-name = 'results/UHCS_VGG16_Weights'
+time_callback = TimeHistory()
+model.fit(X_train, y_train, epochs = 5, batch_size = 32, validation_data=(X_test, y_test), callbacks=[time_callback])
+name = 'results/UHCS_DenseNet121_Weights'
 score = model.evaluate(X_test, y_test)
-print('Test score:'+ score[0])
-print('Test accuracy:'+ score[1])
+print('Test score:', score[0])
+print('Test accuracy:', score[1])
 model.save_weights(name+'.h5')
 
-file = open('VGG16.txt', 'w')
-file.write('Test score:', score[0])
-file.write('Test accuracy:', score[1])
+times = time_callback.times
+file = open('DenseNet121.txt', 'w')
+file.write('Test score:'+ str(score[0])+'\n')
+file.write('Test accuracy:'+ str(score[1])+'\n')
+file.write(str(times))
 file.close()
