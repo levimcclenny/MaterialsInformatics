@@ -75,4 +75,4 @@ model = VGG16(weights='results/Vahid_VGG16_Weights.h5', classes=2)
 
 yhat = model.predict(input)
 
-print(np.hstack(img_name,yhat))
+print(np.hstack((img_name,yhat)))
