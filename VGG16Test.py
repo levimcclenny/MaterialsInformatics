@@ -18,6 +18,10 @@ from keras.layers import Conv2D
 from keras.layers import MaxPooling2D
 import tensorflow as tf
 from progress.bar import Bar
+config = tf.ConfigProto()
+config.gpu_options.allow_growth = True
+sess = tf.Session(config=config)
+keras.backend.set_session(sess)
 
 
 img_new_name = []
@@ -52,11 +56,9 @@ for k in range(len(paths)):
     print('Generating Images\n')
     for i in range(len(imgs)):
         patches = image.extract_patches_2d(imgs[i], (224,224), max_patches = 10)
-        label = img_labels[i]
         for patch in patches:
             x = np.expand_dims(patch, axis = 0)
             processed_imgs.append(preprocess_input(x)[0,:,:,:])
-        progbar(i, (len(imgs)-1), 20)
 
 
 
@@ -66,10 +68,6 @@ print('\nLabels Binarized, converting array')
 
 
 input = np.asarray(processed_imgs)
-
-
-X_train, X_test, y_train, y_test = train_test_split(
-    input, y, test_size=0.1, random_state=42)
  
 input_shape = (224, 224, 1)
 
@@ -77,4 +75,4 @@ model = VGG16(weights='results/Vahid_VGG16_Weights.h5', classes=2)
 
 yhat = model.predict(input)
 
-
+print(np.hstack(img_name,yhat))
