@@ -124,9 +124,10 @@ model.compile(loss = 'categorical_crossentropy', optimizer = 'sgd', metrics = ['
 model.fit(X_train, y_train, epochs = 5, batch_size = 32, validation_data=(X_test, y_test))
 name = 'results/Vahid_VGG16_Weights'
 score = model.evaluate(X_test, y_test)
+model.save_weights(name+'.h5')
 print('Test score:'+ score[0])
 print('Test accuracy:'+ score[1])
-model.save_weights(name+'.h5')
+
 
 file = open('VGG16.txt', 'w')
 file.write('Test score:'+ str(score[0])+'\n')
